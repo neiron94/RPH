@@ -47,11 +47,6 @@ def test_diamond_quality_1():
     update(item)
     return item.quality == 100
 
-def test_diamond_quality_2():
-    item = Item('Diamond', days_left = 3, quality = 20)
-    update(item)
-    return item.quality == 100
-
 
 
 def test_cheese_name_isnt_changed():
@@ -86,7 +81,7 @@ def test_tickets_quality_upper_border():
     update(item)
     return 0 <= item.quality <= 50
 
-def test_item_quality_lower_border():
+def test_tickets_quality_lower_border():
     item = Item('Tickets', days_left = 0, quality = 0)
     update(item)
     return 0 <= item.quality <= 50
@@ -107,9 +102,9 @@ def test_tickets_quality_plus_one_2():
     return item.quality == 2
 
 def test_tickets_quality_plus_two_1():
-    item = Item('Tickets', days_left = 11, quality = 1)
+    item = Item('Tickets', days_left = 10, quality = 10)
     update(item)
-    return item.quality == 3
+    return item.quality == 12
 
 def test_tickets_quality_plus_two_2():
     item = Item('Tickets', days_left = 7, quality = 1)
@@ -117,9 +112,9 @@ def test_tickets_quality_plus_two_2():
     return item.quality == 3
 
 def test_tickets_quality_plus_three_1():
-    item = Item('Tickets', days_left = 6, quality = 1)
+    item = Item('Tickets', days_left = 5, quality = 10)
     update(item)
-    return item.quality == 4
+    return item.quality == 13
   
 def test_tickets_quality_plus_three_2():
     item = Item('Tickets', days_left = 2, quality = 1)
@@ -127,6 +122,6 @@ def test_tickets_quality_plus_three_2():
     return item.quality == 4
 
 def test_tickets_quality_zero():
-    item = Item('Tickets', days_left = 1, quality = 20)
+    item = Item('Tickets', days_left = 0, quality = 30)
     update(item)
     return item.quality == 0
