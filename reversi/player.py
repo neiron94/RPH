@@ -3,6 +3,7 @@ BOARD_SIZE = 8
 ALL_DIRECTIONS = [(1,1), (1,0), (1,-1), (0,-1), (-1,-1), (-1,0), (-1,1), (0,1)] 
  
 class MyPlayer:
+    #TODO - class description
     '''Very informative comment'''
     def __init__(self, my_color, opponent_color):
         self.name = 'shvaiale'
@@ -16,6 +17,7 @@ class MyPlayer:
         #VALUE is a count of opponent's stones, which I will earn
         self.possible_moves = dict()
         self.find_possible_moves(board)
+        #TODO - return None
         move = self.find_optimal_move(board)
         return move
  
