@@ -1,6 +1,18 @@
+from math import inf
 BLANK = -1
 BOARD_SIZE = 8
 ALL_DIRECTIONS = [(1,1), (1,0), (1,-1), (0,-1), (-1,-1), (-1,0), (-1,1), (0,1)] 
+#this matrix represents value of each field
+FIELDS_VALUES = [[0, 0, 0, 0, 0, 0, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0]]
+START_ALPHA = inf
+START_BETA = -inf
  
 class MyPlayer:
     #TODO - class description
@@ -17,9 +29,10 @@ class MyPlayer:
         #VALUE is a count of opponent's stones, which I will earn
         self.possible_moves = dict()
         self.find_possible_moves(board)
-        #TODO - return None
-        move = self.find_optimal_move(board)
-        return move
+        if(self.possible_moves):    #if dict isn't empty
+            move = self.find_optimal_move(board)
+            return move
+        return None     #if dict is empty
  
  
     def find_possible_moves(self, board):
@@ -45,16 +58,17 @@ class MyPlayer:
  
  
     def find_nearby_blanks(self, board, i, j):
-        #I will write matrix 3x3 as a VALUE of a possible moves for now,
+        #I will write matrix 3x3 as a VALUE of possible moves for now,
         #it will represent points, which I will earn in each direction
         nearby_blanks = dict()
 
         for dir_i, dir_j in ALL_DIRECTIONS:
-            if self.is_on_board(i + dir_i, j + dir_j) and \
-            board[i + dir_i][j + dir_j] == BLANK:
-                nearby_blanks[(i + dir_i, j + dir_j)] = [[0,0,0],
-                                                         [0,0,0],
-                                                         [0,0,0]]
+            cur_i, cur_j = i + dir_i, j + dir_j
+            if self.is_on_board(cur_i, cur_j) and \
+            board[cur_i][cur_j] == BLANK:
+                nearby_blanks[(cur_i, cur_j)] = [[0,0,0],
+                                                 [0,0,0],
+                                                 [0,0,0]]
         return nearby_blanks
          
  
@@ -96,7 +110,8 @@ class MyPlayer:
  
  
     def final_sifting(self):
-        #I replace matrix with sum of it's elements and
+        #I replace matrix of VALUES with sum of it's elements + value of
+        #related element of matrix FIELDS_VALUES and
         #delete move, if sum = 0
         copy = self.possible_moves.copy()
         for key, value in copy.items():
@@ -107,6 +122,7 @@ class MyPlayer:
             if elements_sum == 0:
                 del self.possible_moves[key]
             else:
+                elements_sum += FIELDS_VALUES[key[0]][key[1]]
                 self.possible_moves[key] = elements_sum
  
  
@@ -129,3 +145,4 @@ if __name__ == "__main__":
              [-1, -1, -1, -1, -1, -1, -1, -1]]
      
     print(player.move(board))
+    
