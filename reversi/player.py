@@ -1,18 +1,23 @@
 from math import inf
+from copy import deepcopy
+
 BLANK = -1
 BOARD_SIZE = 8
 ALL_DIRECTIONS = [(1,1), (1,0), (1,-1), (0,-1), (-1,-1), (-1,0), (-1,1), (0,1)] 
 #this matrix represents value of each field
-FIELDS_VALUES = [[0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0]]
+FIELDS_VALUES = [[ 6, -5,  3,  3,  3,  3, -5,  6],
+                 [-5, -5, -2, -2, -2, -2, -5, -5],
+                 [ 3, -2,  0,  0,  0,  0, -2,  3],
+                 [ 3, -2,  0,  0,  0,  0, -2,  3],
+                 [ 3, -2,  0,  0,  0,  0, -2,  3],
+                 [ 3, -2,  0,  0,  0,  0, -2,  3],
+                 [-5, -5, -2, -2, -2, -2, -5, -5],
+                 [ 6, -5,  3,  3,  3,  3, -5,  6]]
+#initial values for minimax alpha-beta pruning strategy
 START_ALPHA = inf
 START_BETA = -inf
+START_DEPTH = 3
+START_MAXIMIZING_PLAYER = True
  
 class MyPlayer:
     #TODO - class description
@@ -29,15 +34,19 @@ class MyPlayer:
         #VALUE is a count of opponent's stones, which I will earn
         self.possible_moves = dict()
         self.find_possible_moves(board)
-        if(self.possible_moves):    #if dict isn't empty
-            move = self.find_optimal_move(board)
-            return move
+        if self.possible_moves:    #if dict isn't empty
+            self.move = None
+            self.minimax(board, START_MAXIMIZING_PLAYER, \
+                START_DEPTH, START_ALPHA, START_BETA)
+            return self.move
         return None     #if dict is empty
  
  
     def find_possible_moves(self, board):
         #First sifting. I find opponent's stones on the board, then find
         #nearby blanks and write their indexes as KEYS of possible moves
+        self.possible_moves = dict()
+
         for i in range(BOARD_SIZE):
             for j in range(BOARD_SIZE):
                 if board[i][j] == self.opponent_color:
@@ -49,12 +58,6 @@ class MyPlayer:
                 self.fill_matrix(board, i, j, dir_i, dir_j)
 
         self.final_sifting()
-
-
-    def find_optimal_move(self, board):
-        #TODO - strategy
-        for move in self.possible_moves:
-            return move
  
  
     def find_nearby_blanks(self, board, i, j):
@@ -121,15 +124,142 @@ class MyPlayer:
              
             if elements_sum == 0:
                 del self.possible_moves[key]
+            #to delete
             else:
-                elements_sum += FIELDS_VALUES[key[0]][key[1]]
                 self.possible_moves[key] = elements_sum
- 
+            #
  
     def is_on_board(self, a, b):
         #check, if (a, b) is on the board
         return True if 0 <= a < BOARD_SIZE and 0 <= b < BOARD_SIZE else False
+
+################################################################################
+
+    def minimax(self, board, maximizingPlayer, depth, alpha, beta):
+        if self.game_ended(board):
+            if self.I_won(board):
+                return inf
+            else:
+                return -inf
+
+        if depth == 0:
+            return self.count_position(board)
+
+        if maximizingPlayer:
+            max_eval = -inf
+            self.find_possible_moves(board)
+            moves = self.possible_moves.keys()
+            for move in moves:
+                new_board = self.update_board(board, move, self.my_color)
+                eval = self.minimax(new_board, False, depth - 1, alpha, beta)
+                if eval > max_eval:
+                    max_eval = eval
+                    self.move = move
+                    alpha = max(alpha, eval)
+                    if beta <= alpha:
+                        break
+            return max_eval
+        else:
+            min_eval = inf
+            self.my_color, self.opponent_color = self.opponent_color, self.my_color 
+            self.find_possible_moves(board)
+            self.my_color, self.opponent_color = self.opponent_color, self.my_color
+            moves = self.possible_moves.keys()
+            for move in moves:
+                new_board = self.update_board(board, move, self.opponent_color)
+                eval = self.minimax(new_board, True, depth - 1, alpha, beta)
+                if eval < min_eval:
+                    min_eval = eval
+                    beta = min(beta, eval)
+                    if beta <= alpha:
+                        break
+            return min_eval
+
+
+    def game_ended(self, board):
+        self.find_possible_moves(board)
+        my_moves = self.possible_moves
+        if my_moves:
+            return False
+
+        self.my_color, self.opponent_color = self.opponent_color, self.my_color 
+        self.find_possible_moves(board)
+        self.my_color, self.opponent_color = self.opponent_color, self.my_color
+        opp_moves = self.possible_moves
+        if opp_moves:
+            return False
+
+        return True
+
+    def I_won(self, board):
+        my_stones = 0
+        opp_stones = 0
+        for line in board:
+            for stone in line:
+                if stone == self.my_color:
+                    my_stones += 1
+                elif stone == self.opponent_color:
+                    opp_stones += 1
+        return my_stones > opp_stones
+
+
+    def count_position(self, board):
+        result = 0
+        for i in range(BOARD_SIZE):
+            for j in range(BOARD_SIZE):
+                stone = board[i][j]
+                if stone == self.my_color:
+                    result += 1
+                    result += FIELDS_VALUES[i][j]
+                elif stone == self.opponent_color:
+                    result -= 1
+                    result -= FIELDS_VALUES[i][j]
+        return result
+
+    
+    def update_board(self, board, move, color):
+        another_color = 0
+        if color == 0:
+            another_color = 1
+        
+        new_board = deepcopy(board)
+        i, j = move[0], move[1]
+        new_board[i][j] = color
+        for dir_i, dir_j in ALL_DIRECTIONS:
+            if self.is_sequence(new_board, i, j, dir_i, dir_j, color, another_color):
+                self.flip_stones(new_board, i, j, dir_i, dir_j, color)
+        return new_board
+
+    def is_sequence(self, board, i, j, dir_i, dir_j, color, another_color):
+        cur_i = i + dir_i
+        cur_j = j + dir_j
+        
+        if not self.is_on_board(cur_i, cur_j) or \
+        board[cur_i][cur_j] != another_color:
+            return False
  
+        while self.is_on_board(cur_i, cur_j):
+            if board[cur_i][cur_j] == BLANK:
+                return False
+             
+            if board[cur_i][cur_j] == another_color:
+                cur_i += dir_i
+                cur_j += dir_j
+                continue
+ 
+            if board[cur_i][cur_j] == color:
+                return True
+        return False
+
+    def flip_stones(self, board, i, j, dir_i, dir_j, color):
+        cur_i = i + dir_i
+        cur_j = j + dir_j
+
+        while board[cur_i][cur_j] != color:
+            board[cur_i][cur_j] = color
+            cur_i += dir_i
+            cur_j += dir_j
+    
 
 
 
