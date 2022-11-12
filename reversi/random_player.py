@@ -12,7 +12,7 @@ class MyPlayer(object):
         self.opponentColor = opponent_color
         self.moveCount = 1;
         #self.move_i = 0
-        print('create random player')
+        #print('create random player')
         
 
     def move(self,board):

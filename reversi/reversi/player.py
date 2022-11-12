@@ -1,26 +1,27 @@
 from math import inf
 from copy import deepcopy
 
-BLANK = -1  #-1 represents blank field
+BLANK = -1
 BOARD_SIZE = 8
 ALL_DIRECTIONS = [(1,1), (1,0), (1,-1), (0,-1), (-1,-1), (-1,0), (-1,1), (0,1)] 
-#matrix FIELDS_VALUES represents value of each field
-FIELDS_VALUES = [[ 25, -10,  5,  5,  5,  5, -10,  25],
+#this matrix represents value of each field
+FIELDS_VALUES = [[25, -10, 5, 5,  5,  5, -10, 25],
                  [-10, -10, -2, -2, -2, -2, -10, -10],
-                 [  5,  -2,  0,  0,  0,  0,  -2,   5],
-                 [  5,  -2,  0,  0,  0,  0,  -2,   5],
-                 [  5,  -2,  0,  0,  0,  0,  -2,   5],
-                 [  5,  -2,  0,  0,  0,  0,  -2,   5],
+                 [5, -2,  0,  0,  0,  0, -2, 5],
+                 [5, -2,  0,  0,  0,  0, -2, 5],
+                 [5, -2,  0,  0,  0,  0, -2, 5],
+                 [5, -2,  0,  0,  0,  0, -2, 5],
                  [-10, -10, -2, -2, -2, -2, -10, -10],
-                 [ 25, -10,  5,  5,  5,  5, -10,  25]]
-#initial values for minimax strategy with alpha-beta pruning
+                 [25, -10, 5, 5, 5, 5, -10, 25]]
+#initial values for minimax alpha-beta pruning strategy
 START_ALPHA = -inf
 START_BETA = inf
-START_DEPTH = 3 #3 is maximum possible depth of algorithm with time limit 1 sec
+START_DEPTH = 15
 START_MAXIMIZING_PLAYER = True
  
 class MyPlayer:
-    '''Player uses minimax strategy with alpha-beta pruning with depth = 3'''
+    #TODO - class description
+    '''Very informative comment'''
     def __init__(self, my_color, opponent_color):
         self.name = 'shvaiale'
         self.my_color = my_color

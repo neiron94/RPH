@@ -1,11 +1,16 @@
+import player
 import random_player
 from game_board import GameBoard
 import time, getopt, sys
+
+
 
 class HeadlessReversiCreator(object):
     '''
     Creator of the Reversi game without the GUI.
     '''
+    MY_SCORE = 0
+    OPP_SCORE = 0
 
     def __init__(self, player1, player1_color, player2, player2_color, board_size=8):
         '''
@@ -35,33 +40,33 @@ class HeadlessReversiCreator(object):
             endTime = time.time()
             moveTime = (endTime - startTime) * 1000
             if move is None:
-                print('Player %d reurns None istead of a valid move. Move takes %.3f ms.' % (self.current_player_color, moveTime))
+                #print('Player %d reurns None istead of a valid move. Move takes %.3f ms.' % (self.current_player_color, moveTime))
                 correct_finish = False
                 break
-            else:
-                print('Player %d wants move [%d,%d]. Move takes %.3f ms.' % (self.current_player_color, move[0], move[1], moveTime))
+            #else:
+                #print('Player %d wants move [%d,%d]. Move takes %.3f ms.' % (self.current_player_color, move[0], move[1], moveTime))
             
             move = (int(move[0]),int(move[1]))
             if self.board.is_correct_move(move, self.current_player_color):
-                print('Move is correct')
+                #print('Move is correct')
                 self.board.play_move(move, self.current_player_color)
 
             else:
-                print('Player %d made the wrong move [%d,%d]' % (self.current_player_color, move[0], move[1]))
+                #print('Player %d made the wrong move [%d,%d]' % (self.current_player_color, move[0], move[1]))
                 correct_finish = False
                 break
 
             self.change_player()
             if not self.board.can_play(self.current_player_color):
-                print('No possible move for Player %d' % (self.current_player_color))
+                #print('No possible move for Player %d' % (self.current_player_color))
                 self.change_player()
-                if self.board.can_play(self.current_player_color):
-                    print('Player %d plays again ' % (self.current_player_color))
-                else:
-                    print('Game over')
+                # if self.board.can_play(self.current_player_color):
+                #     print('Player %d plays again ' % (self.current_player_color))
+                # else:
+                #     print('Game over')
 
 
-            self.board.print_board()
+            #self.board.print_board()
         if correct_finish:
             self.printFinalScore()
         else:
@@ -93,15 +98,17 @@ class HeadlessReversiCreator(object):
                 if self.board.board[x][y] == 1:
                     p2Stones += 1
 
-        print('\n\n-----------------------------\n')
-        print('Final score:\n\nPlayer%d:Player%d\n\t[%d:%d]\n' % (self.player1_color, self.player2_color, p1Stones, p2Stones))
+        #print('\n\n-----------------------------\n')
+        #print('Final score:\n\nPlayer%d:Player%d\n\t[%d:%d]\n' % (self.player1_color, self.player2_color, p1Stones, p2Stones))
         if p1Stones > p2Stones:
-            print('Player %d wins!' % (self.player1_color))
+            #print('Player %d wins!' % (self.player1_color))
+            HeadlessReversiCreator.MY_SCORE += 1
         elif p2Stones > p1Stones:
-            print('Player %d wins!' % (self.player2_color))
-        else:
-            print('Draw')
-        print('\n-----------------------------\n\n')
+            #print('Player %d wins!' % (self.player2_color))
+            HeadlessReversiCreator.OPP_SCORE += 1
+        #else:
+            #print('Draw')
+        #print('\n-----------------------------\n\n')
 
 if __name__ == "__main__":
     (choices,args) = getopt.getopt(sys.argv[1:],"")
@@ -109,11 +116,19 @@ if __name__ == "__main__":
     p2_color = 1
 
     if len(args) == 0:
-        print('No arguments given.\nRunning game with two random players.')
-        p1 = random_player.MyPlayer(p1_color, p2_color)
-        p2 = random_player.MyPlayer(p2_color, p1_color)
-        game = HeadlessReversiCreator(p1, p1_color, p2, p2_color, 8)
-        game.play_game()
+        for i in range(1000):
+            print(i)
+            p1 = player.MyPlayer(p1_color, p2_color)
+            p2 = random_player.MyPlayer(p2_color, p1_color)
+            game = HeadlessReversiCreator(p1, p1_color, p2, p2_color, 8)
+            game.play_game()
+        print("MY_SCORE = " + str(HeadlessReversiCreator.MY_SCORE))
+        print("OPP_SCORE = " + str(HeadlessReversiCreator.OPP_SCORE))
+        # print('No arguments given.\nRunning game with two random players.')
+        # p1 = random_player.MyPlayer(p1_color, p2_color)
+        # p2 = random_player.MyPlayer(p2_color, p1_color)
+        # game = HeadlessReversiCreator(p1, p1_color, p2, p2_color, 8)
+        # game.play_game()
 
     elif len(args) == 1:
         print('One player given in argument.\nRunning game with given player against the random player.')
