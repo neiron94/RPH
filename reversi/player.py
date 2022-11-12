@@ -31,9 +31,9 @@ class MyPlayer:
         #I store possible moves as a dictionary, where
         #KEY is a tuple of indexes of a possible move (i, j) and
         #VALUE is a count of opponent's stones, which I will earn
-        self.possible_moves = dict()
-        self.find_possible_moves(board)
-        if not self.possible_moves: #if dict is empty
+        self.possible_moves = set()
+        self.find_possible_moves(board, self.my_color, self.opponent_color)
+        if not self.possible_moves: #if set is empty
             return None
         self.optimal_move = None
         self.minimax(board, START_MAXIMIZING_PLAYER, \
@@ -42,92 +42,63 @@ class MyPlayer:
         
  
  
-    def find_possible_moves(self, board):
+    def find_possible_moves(self, board, my_color, opp_color):
         #First sifting. I find opponent's stones on the board, then find
         #nearby blanks and write their indexes as KEYS of possible moves
-        self.possible_moves = dict()
+        self.possible_moves = set()
 
         for i in range(BOARD_SIZE):
             for j in range(BOARD_SIZE):
-                if board[i][j] == self.opponent_color:
+                if board[i][j] == opp_color:
                     nearby_blanks = self.find_nearby_blanks(board, i, j)
                     self.possible_moves.update(nearby_blanks)
         #Now I'm filling matrix of VALUES
-        for i, j in self.possible_moves:
+        copy = self.possible_moves.copy()
+        for i, j in copy:
+            is_move = False
             for dir_i, dir_j in ALL_DIRECTIONS:
-                self.fill_matrix(board, i, j, dir_i, dir_j)
+                if self.is_sequence(board, i, j, dir_i, dir_j, my_color, opp_color):
+                    is_move = True
+                    break
+            if not is_move:
+                self.possible_moves.remove((i, j))
+            
 
-        self.final_sifting()
- 
- 
+                
     def find_nearby_blanks(self, board, i, j):
         #I will write matrix 3x3 as a VALUE of possible moves for now,
         #it will represent points, which I will earn in each direction
-        nearby_blanks = dict()
+        nearby_blanks = set()
 
         for dir_i, dir_j in ALL_DIRECTIONS:
             cur_i, cur_j = i + dir_i, j + dir_j
             if self.is_on_board(cur_i, cur_j) and \
             board[cur_i][cur_j] == BLANK:
-                nearby_blanks[(cur_i, cur_j)] = [[0,0,0],
-                                                 [0,0,0],
-                                                 [0,0,0]]
+                nearby_blanks.add((cur_i, cur_j))
         return nearby_blanks
-         
- 
-    def fill_matrix(self, board, i, j, dir_i, dir_j):
-        #I'm checking direction (dir_i, dir_j) from point (i, j),
-        #if there is a chain of opponent's stones, finished with my stone,
-        #then I write number of opponent's stones in the matrix of VALUES
-        #on related place ([1 + dir_i][1 + dir_j]), else I write 0
-        key = (i, j)
-        matrix_i = 1 + dir_i
-        matrix_j = 1 + dir_j
-        #(cur_i, cur_j) - current point to be checked
+
+
+    def is_sequence(self, board, i, j, dir_i, dir_j, my_color, opp_color):
         cur_i = i + dir_i
         cur_j = j + dir_j
-        #after this check we are sure, that the first stone is opponent's
+        
         if not self.is_on_board(cur_i, cur_j) or \
-        board[cur_i][cur_j] != self.opponent_color:
-            return
+        board[cur_i][cur_j] != opp_color:
+            return False
  
         while self.is_on_board(cur_i, cur_j):
             if board[cur_i][cur_j] == BLANK:
-                #there is obviosly no turn, if we've encountered blank
-                self.possible_moves[key][matrix_i][matrix_j] = 0
-                return
+                return False
              
-            if board[cur_i][cur_j] == self.opponent_color:
-                #increments related element of matrix of VALUES
-                self.possible_moves[key][matrix_i][matrix_j] += 1
-                #go to the next point (cur_i + dir_i, cur_j + dir_j)
+            if board[cur_i][cur_j] == opp_color:
                 cur_i += dir_i
                 cur_j += dir_j
                 continue
  
-            if board[cur_i][cur_j] == self.my_color:
-                #end of a chain
-                return
-        #if we've got off a loop, then we aren't on the board
-        self.possible_moves[key][matrix_i][matrix_j] = 0
+            if board[cur_i][cur_j] == my_color:
+                return True
+        return False
  
- 
-    def final_sifting(self):
-        #I replace matrix of VALUES with sum of it's elements + value of
-        #related element of matrix FIELDS_VALUES and
-        #delete move, if sum = 0
-        copy = self.possible_moves.copy()
-        for key, value in copy.items():
-            elements_sum = 0
-            for line in value:
-                elements_sum += sum(line)
-             
-            if elements_sum == 0:
-                del self.possible_moves[key]
-            #to delete
-            else:
-                self.possible_moves[key] = elements_sum
-            #
  
     def is_on_board(self, a, b):
         #check, if (a, b) is on the board
@@ -147,8 +118,8 @@ class MyPlayer:
 
         if maximizingPlayer:
             max_eval = -inf
-            self.find_possible_moves(board)
-            moves = self.possible_moves.keys()
+            self.find_possible_moves(board, self.my_color, self.opponent_color)
+            moves = self.possible_moves
             if not moves:
                 return self.minimax(board, True, depth - 1, alpha, beta)
             for move in moves:
@@ -163,11 +134,9 @@ class MyPlayer:
                     break
             return max_eval
         else:
-            min_eval = inf
-            self.my_color, self.opponent_color = self.opponent_color, self.my_color 
-            self.find_possible_moves(board)
-            self.my_color, self.opponent_color = self.opponent_color, self.my_color
-            moves = self.possible_moves.keys()
+            min_eval = inf 
+            self.find_possible_moves(board, self.opponent_color, self.my_color)
+            moves = self.possible_moves
             if not moves:
                 return self.minimax(board, False, depth - 1, alpha, beta)
             for move in moves:
@@ -181,14 +150,12 @@ class MyPlayer:
 
 
     def game_ended(self, board):
-        self.find_possible_moves(board)
+        self.find_possible_moves(board, self.my_color, self.opponent_color)
         my_moves = self.possible_moves
         if my_moves:
             return False
-
-        self.my_color, self.opponent_color = self.opponent_color, self.my_color 
-        self.find_possible_moves(board)
-        self.my_color, self.opponent_color = self.opponent_color, self.my_color
+ 
+        self.find_possible_moves(board, self.opponent_color, self.my_color)
         opp_moves = self.possible_moves
         if opp_moves:
             return False
@@ -234,26 +201,7 @@ class MyPlayer:
                 self.flip_stones(new_board, i, j, dir_i, dir_j, color)
         return new_board
 
-    def is_sequence(self, board, i, j, dir_i, dir_j, color, another_color):
-        cur_i = i + dir_i
-        cur_j = j + dir_j
-        
-        if not self.is_on_board(cur_i, cur_j) or \
-        board[cur_i][cur_j] != another_color:
-            return False
- 
-        while self.is_on_board(cur_i, cur_j):
-            if board[cur_i][cur_j] == BLANK:
-                return False
-             
-            if board[cur_i][cur_j] == another_color:
-                cur_i += dir_i
-                cur_j += dir_j
-                continue
- 
-            if board[cur_i][cur_j] == color:
-                return True
-        return False
+
 
     def flip_stones(self, board, i, j, dir_i, dir_j, color):
         cur_i = i + dir_i
