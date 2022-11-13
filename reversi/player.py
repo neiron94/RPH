@@ -1,6 +1,14 @@
+'''----------Used materials----------'''
+#1)Video about minimax strategy: 
+#https://www.youtube.com/watch?v=STjW3eH0Cik&t
+#2)My implementation of minimax strategy is inspired by this video:
+#https://www.youtube.com/watch?v=l-hh51ncgDI&t
+
+'''----------Used libraries----------'''
 from math import inf
 from copy import deepcopy
 
+'''----------Constants for MyPlayer----------'''
 BLANK = -1  #-1 represents blank field
 BOARD_SIZE = 8
 ALL_DIRECTIONS = [(1,1), (1,0), (1,-1), (0,-1), (-1,-1), (-1,0), (-1,1), (0,1)] 
@@ -19,6 +27,7 @@ START_BETA = inf
 START_DEPTH = 3 #3 is maximum possible depth of algorithm with time limit 1 sec
 START_MAXIMIZING_PLAYER = True  #True - my turn, False - opponent's turn
  
+
 class MyPlayer:
     '''Player uses minimax strategy with alpha-beta pruning with depth = 3'''
     def __init__(self, my_color, opponent_color):
@@ -40,7 +49,8 @@ class MyPlayer:
         return self.optimal_move
         
  
- 
+    '''----------Functions for finding possible moves----------'''
+    @staticmethod
     def find_moves(board, my_color, opp_color):
         #Arguments my_color and opp_color allow me to compute my possible
         #moves (my_color = self.my_color, opp_color = self.opponent_color)
@@ -125,7 +135,7 @@ class MyPlayer:
         #Check, if (a, b) is on the board
         return True if 0 <= a < BOARD_SIZE and 0 <= b < BOARD_SIZE else False
 
-################################################################################
+    '''----------Strategy functions----------'''
 
     def minimax(self, board, maximizingPlayer, depth, alpha, beta):
         if self.game_ended(board):
